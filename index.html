@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Joey Joseph</title>
+  <script>if ('scrollRestoration' in history) history.scrollRestoration = 'manual';</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       TOKENS
+       ============================================================ */
+    :root {
+      --night:   #0E0B08;
+      --oxblood: #8B1A1A;
+      --bone:    #E8E2D4;
+      --ash:     #5A544A;
+      --gold:    #C4A052;
+
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-condensed: 'Barlow Condensed', sans-serif;
+      --font-display:   'Playfair Display', serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      overflow-x: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    html::-webkit-scrollbar { width: 0; height: 0; }
+
+    body {
+      background: var(--night);
+      color: var(--bone);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    body::-webkit-scrollbar { width: 0; height: 0; }
+
+
+    /* ============================================================
+       LOADER
+       ============================================================ */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: var(--night);
+      z-index: 9000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      transition: opacity 1s ease 0.2s;
+    }
+    #loader.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loader.gone { display: none; }
+
+    .loader-sig {
+      width: 180px;
+      opacity: 0.9;
+      filter: drop-shadow(0 0 24px rgba(139,26,26,0.35));
+    }
+    .loader-track {
+      width: 180px;
+      height: 1px;
+      background: rgba(232,226,212,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .loader-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0%;
+      background: rgba(232,226,212,0.6);
+      transition: width 0.15s ease;
+    }
+    .loader-label {
+      font-family: var(--font-condensed);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--ash);
+    }
+
+    /* ============================================================
+       CANVAS — image sequence display
+       ============================================================ */
+    #canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      /* sized via JS */
+    }
+
+    /* ============================================================
+       CINEMATIC OVERLAYS — legibility gradients
+       ============================================================ */
+    #overlays {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      /* Top: nav breathing room */
+      background:
+        linear-gradient(180deg, rgba(14,11,8,0.82) 0%, rgba(14,11,8,0) 22%),
+        linear-gradient(0deg,   rgba(14,11,8,0.72) 0%, rgba(14,11,8,0) 22%),
+        rgba(14,11,8,0.18);
+    }
+
+    /* ============================================================
+       UI LAYER — all overlaid content
+       ============================================================ */
+    #ui {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       TOP NAV
+       ============================================================ */
+    #top-nav {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 20; /* above full-bleed .section layers so links receive clicks */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 34px 48px;
+      pointer-events: auto;
+    }
+
+    .nav-sig {
+      width: 148px;
+      filter: drop-shadow(0 2px 12px rgba(0,0,0,0.55));
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .nav-sig.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+    }
+    .nav-links a {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--bone);
+      text-decoration: none;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .nav-links a:hover { color: var(--oxblood); }
+    .nav-sep {
+      color: var(--ash);
+      opacity: 0.35;
+      margin: 0 14px;
+      font-size: 11px;
+    }
+
+    /* ============================================================
+       SIDE TIMELINE NAV
+       ============================================================ */
+    #timeline {
+      position: absolute;
+      right: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: auto;
+    }
+
+    .tl-connector {
+      width: 1px;
+      height: 36px;
+      background: rgba(232,226,212,0.15);
+    }
+
+    .tl-node {
+      position: relative;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .tl-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 1px solid rgba(232,226,212,0.35);
+      background: transparent;
+      transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    .tl-node.active .tl-dot {
+      background: var(--oxblood);
+      border-color: var(--oxblood);
+      box-shadow: 0 0 14px rgba(139,26,26,0.65);
+    }
+
+    .tl-tag {
+      position: absolute;
+      right: 18px;
+      white-space: nowrap;
+      font-family: var(--font-condensed);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ash);
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+    }
+    .tl-node:hover .tl-tag { opacity: 1; }
+
+    /* ============================================================
+       SECTION PRIMITIVES
+       ============================================================ */
+    .section {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transition: none; /* opacity driven by JS rAF, no CSS transition */
+      pointer-events: none;
+      padding: 100px 48px 80px max(48px, 8vw);
+    }
+    .section.active {
+      pointer-events: auto;
+    }
+    .section.active a {
+      pointer-events: auto;
+    }
+
+    .sec-label {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--ash);
+      margin-bottom: 44px;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+    }
+    .sec-label .num {
+      margin-right: 12px;
+      opacity: 0.7;
+    }
+
+    /* ============================================================
+       HERO SECTION
+       ============================================================ */
+    #sec-hero {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0;
+    }
+
+    .hero-sig {
+      width: 260px;
+      max-width: 65vw;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 4px 24px rgba(0,0,0,0.65));
+    }
+
+    .hero-tagline {
+      font-family: var(--font-condensed);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: var(--bone);
+      opacity: 0.55;
+      margin-bottom: 64px;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.8);
+    }
+
+    .scroll-prompt {
+      font-family: var(--font-condensed);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ash);
+      animation: breathe 2.8s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 0.3; transform: translateY(0); }
+      50%       { opacity: 0.7; transform: translateY(5px); }
+    }
+
+    /* Vertical right tag — lives inside hero section */
+    .hero-edge-tag {
+      position: absolute;
+      right: 20px;
+      bottom: 38%;
+      font-family: var(--font-condensed);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ash);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      opacity: 0.55;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.7);
+    }
+
+    /* ============================================================
+       SHOWS SECTION
+       ============================================================ */
+    #sec-shows {
+      justify-content: center;
+    }
+
+    .shows-inner { max-width: 740px; }
+
+    .shows-list {
+      border-top: 1px solid rgba(232,226,212,0.1);
+    }
+
+    .show-row {
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      gap: 0 28px;
+      align-items: baseline;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(232,226,212,0.1);
+    }
+
+    .show-date {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bone);
+      text-shadow:
+        0 0 28px rgba(139,26,26,0.55),
+        0 2px 12px rgba(0,0,0,0.75);
+    }
+
+    .show-venue {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--bone);
+      text-shadow: 0 2px 18px rgba(0,0,0,0.8);
+    }
+
+    .show-meta {
+      margin-top: 4px;
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ash);
+      text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+    }
+
+    .show-link {
+      font-family: var(--font-condensed);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--bone);
+      text-decoration: none;
+      opacity: 0.45;
+      transition: opacity 0.2s, color 0.2s;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+      white-space: nowrap;
+    }
+    .show-link:hover { opacity: 1; color: var(--oxblood); }
+    .show-link.is-tba {
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       MUSIC SECTION
+       ============================================================ */
+    #sec-music {
+      align-items: center;
+      text-align: center;
+    }
+
+    .music-sig {
+      width: 240px;
+      max-width: 58vw;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 4px 24px rgba(0,0,0,0.65));
+    }
+
+    .music-sub {
+      font-family: var(--font-condensed);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: var(--ash);
+      margin-bottom: 52px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+    }
+
+    .platform-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .platform-link {
+      display: inline-block;
+      font-family: var(--font-condensed);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--bone);
+      text-decoration: none;
+      padding: 13px 28px;
+      border: 1px solid rgba(232,226,212,0.18);
+      transition: border-color 0.25s, background 0.25s, color 0.25s;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.8);
+    }
+    .platform-link:hover {
+      border-color: rgba(139,26,26,0.8);
+      background: rgba(139,26,26,0.1);
+    }
+
+    /* ============================================================
+       ABOUT SECTION
+       ============================================================ */
+    #sec-about {
+      justify-content: center;
+    }
+
+    .about-inner { max-width: 520px; }
+
+    .about-body p {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.75;
+      color: var(--bone);
+      text-shadow:
+        0 2px 20px rgba(0,0,0,0.85),
+        0 0 50px rgba(0,0,0,0.5);
+      margin-bottom: 22px;
+    }
+    .about-body p:last-child { margin-bottom: 0; }
+    .about-body em {
+      font-style: normal;
+      color: var(--bone);
+      opacity: 0.85;
+    }
+
+    /* ============================================================
+       BOOKING SECTION
+       ============================================================ */
+    #sec-booking {
+      justify-content: center;
+    }
+
+    .booking-inner { max-width: 560px; }
+
+    .avail-list {
+      margin-bottom: 44px;
+      border-top: 1px solid rgba(232,226,212,0.08);
+    }
+
+    .avail-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 0;
+      border-bottom: 1px solid rgba(232,226,212,0.08);
+    }
+
+    .avail-type {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--bone);
+      text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+    }
+
+    .avail-status {
+      font-family: var(--font-condensed);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+    .avail-status.open    { color: var(--bone); opacity: 0.4; }
+    .avail-status.limited { color: var(--gold); }
+    .avail-status.booked  { color: var(--ash); text-decoration: line-through; opacity: 0.4; }
+
+    .booking-cta {
+      display: inline-block;
+      font-family: var(--font-condensed);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--bone);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(232,226,212,0.25);
+      padding-bottom: 3px;
+      transition: border-color 0.2s, color 0.2s;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+    }
+    .booking-cta:hover {
+      border-color: var(--oxblood);
+      color: var(--oxblood);
+    }
+
+    /* ============================================================
+       SCROLL SPACER
+       ============================================================ */
+    #spacer {
+      /* height set by JS from CONFIG */
+    }
+
+    /* ============================================================
+       MOBILE
+       ============================================================ */
+    @media (max-width: 768px) {
+      /* Text links removed — signature only (home); section jumps via side dots */
+      #top-nav {
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 20px 18px;
+      }
+      #navLinks { display: none !important; }
+      .nav-sig {
+        width: 120px;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+
+      #timeline { right: 14px; }
+      .tl-connector { height: 28px; }
+      .tl-tag { display: none; }
+
+      .section { padding: 80px 20px 60px 20px; }
+
+      .hero-sig { width: 190px; }
+
+      .show-row {
+        grid-template-columns: 80px 1fr;
+        gap: 0 14px;
+      }
+      .show-link { display: none; }
+      .show-venue { font-size: 15px; }
+      .show-date { font-size: 16px; }
+
+      .music-sig { width: 190px; }
+      .platform-links { gap: 12px; }
+      .platform-link { padding: 11px 18px; font-size: 11px; }
+
+      .about-body p { font-size: 14px; }
+      .avail-type { font-size: 10px; letter-spacing: 0.14em; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOADER
+     ============================================================ -->
+<div id="loader">
+  <img id="loaderSig" class="loader-sig" src="" alt="Joey Joseph">
+  <div class="loader-track">
+    <div class="loader-fill" id="loaderFill"></div>
+  </div>
+  <div class="loader-label" id="loaderLabel">Loading</div>
+</div>
+
+<!-- ============================================================
+     CANVAS — image sequence
+     ============================================================ -->
+<canvas id="canvas"></canvas>
+
+<!-- ============================================================
+     CINEMATIC OVERLAYS
+     ============================================================ -->
+<div id="overlays"></div>
+
+<!-- ============================================================
+     UI — all overlaid content
+     ============================================================ -->
+<div id="ui">
+
+  <!-- TOP NAV -->
+  <div id="top-nav">
+    <img class="nav-sig" id="navSig" src="" alt="Joey Joseph">
+    <nav class="nav-links" id="navLinks"></nav>
+  </div>
+
+  <!-- SIDE TIMELINE — one dot per section (scroll targets from CONFIG.timelineTargets) -->
+  <div id="timeline">
+    <div class="tl-node" data-idx="0">
+      <div class="tl-dot"></div>
+      <span class="tl-tag">Shows</span>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-node" data-idx="1">
+      <div class="tl-dot"></div>
+      <span class="tl-tag">Music</span>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-node" data-idx="2">
+      <div class="tl-dot"></div>
+      <span class="tl-tag">About</span>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-node" data-idx="3">
+      <div class="tl-dot"></div>
+      <span class="tl-tag">Booking</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="section active" id="sec-hero" style="opacity: 1">
+    <img class="hero-sig" id="heroSig" src="" alt="Joey Joseph">
+    <div class="hero-tagline" id="heroTagline"></div>
+    <div class="scroll-prompt">Scroll to enter ↓</div>
+    <span class="hero-edge-tag" id="edgeTag"></span>
+  </div>
+
+  <!-- SHOWS -->
+  <div class="section" id="sec-shows">
+    <div class="sec-label"><span class="num">01</span>Shows</div>
+    <div class="shows-inner">
+      <div class="shows-list" id="showsList"></div>
+    </div>
+  </div>
+
+  <!-- MUSIC -->
+  <div class="section" id="sec-music">
+    <div class="sec-label"><span class="num">02</span>Music</div>
+    <img class="music-sig" id="musicSig" src="" alt="Joey Joseph">
+    <div class="music-sub">Stream &amp; Watch</div>
+    <div class="platform-links" id="platformLinks"></div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="section" id="sec-about">
+    <div class="sec-label"><span class="num">03</span>About</div>
+    <div class="about-inner">
+      <div class="about-body" id="aboutBody"></div>
+    </div>
+  </div>
+
+  <!-- BOOKING -->
+  <div class="section" id="sec-booking">
+    <div class="sec-label"><span class="num">04</span>Booking</div>
+    <div class="booking-inner">
+      <div class="avail-list" id="availList"></div>
+      <a class="booking-cta" id="bookingCta" href="#">Inquire →</a>
+    </div>
+  </div>
+
+</div><!-- /ui -->
+
+<!-- SCROLL SPACER -->
+<div id="spacer"></div>
+
+<script>
+/* ============================================================
+   CONFIG — edit content here only. Do not touch RENDER or ENGINE.
+   ============================================================ */
+const CONFIG = {
+
+  signatureUrl: 'https://raw.githubusercontent.com/svprbd4776-beep/my-site-assets/796c7ff76affe90058057566bf506fbb4c2c899b/Joey_Signature_white.png',
+
+  /* Frame sequence — swap baseUrl after re-hosting frames */
+  frames: {
+    baseUrl:    'https://raw.githubusercontent.com/svprbd4776-beep/jjweb2/4daa496aa552db1fa50eb450771227c5e4cdbac4/frames%202/',
+    total:      354,
+    pad:        3,        // zero-pad width: 001 = 3, 0001 = 4
+    prefix:     'frame_',
+    ext:        '.webp',
+  },
+
+  /* Total page scroll height */
+  scrollHeight: '600vh',
+
+  /* Forward nav: (frames crossed) / filmScrollFps — same natural rate on every jump. */
+  filmScrollFps: 24,
+  filmScrollForwardMinMs: 100,
+  filmScrollForwardMaxMs: 60000,
+  /* Backward / rewind: shorter wall-clock */
+  filmScrollRewindMult:    0.42,
+  filmScrollRewindMinMs:   90,
+  filmScrollRewindMaxMs:   5200,
+
+  /* 1-based frame numbers matching files (frame_001 …). Scrub runs from first → last
+     for scroll progress in [0, videoEndProgress]; above that, last frame is held. */
+  keyFrames: [1, 129, 162, 354],
+
+  /* Scroll progress [0–1] where the final keyframe is reached; after this, only About/Booking use scroll. */
+  videoEndProgress: 0.74,
+
+  /* Populated by applyDerivedScrollConfig() — [start, end] full-opacity band per section */
+  choreography: null,
+  timelineTargets: null,
+
+  nav: [
+    { label: 'Shows',  section: 'shows'  },
+    { label: 'Music',  section: 'music'  },
+    { label: 'About',  section: 'about'  },
+    { label: 'Book',   section: 'booking' },
+  ],
+
+  hero: {
+    tagline: 'Artist · Musician · Composer',
+    edgeTag: 'Late Night Sessions · NYC · Est. 2024',
+  },
+
+  shows: [
+    { date: '04.30', day: 'Wed', venue: 'Da Milio',        city: 'New York', name: 'Late Night Sessions', url: '#' },
+    { date: '05.07', day: 'Wed', venue: 'Da Milio',        city: 'New York', name: 'Late Night Sessions', url: '#' },
+    { date: '05.14', day: 'Wed', venue: 'Russian Samovar', city: 'New York', name: 'Guest Night',         url: '' },
+    { date: '06.12', day: 'Thu', venue: 'Venue TBD',       city: 'London',   name: 'UK Debut',            url: '' },
+  ],
+
+  music: {
+    spotifyUrl:    'https://open.spotify.com/artist/1a951C0bcKZ8KUwYvpGLcM',
+    appleMusicUrl: 'https://music.apple.com/us/artist/joey-joseph/1126335269',
+    youtubeUrl:    'https://www.youtube.com/@joeyjosephtv',
+  },
+
+  about: {
+    bio: [
+      'Joey Joseph is a New York pianist, vocalist, violinist, and composer. He hosts <em>Late Night Sessions</em> — a weekly residency at Da Milio on Thompson Street where the city\'s jazz and pop orbits overlap.',
+      'Outside the residency, he scores for film and television under NocturneScoring.Studios, performs at private events across the Northeast, and keeps a small studio of students.',
+    ],
+  },
+
+  availability: [
+    { type: 'Live Performance',        status: 'open'    },
+    { type: 'Private Events',          status: 'open'    },
+    { type: 'Weddings',                status: 'limited' },
+    { type: 'Corporate',               status: 'open'    },
+    { type: 'Sessions',                status: 'open'    },
+    { type: 'Composition & Scoring',   status: 'open'    },
+    { type: 'Lessons',                 status: 'limited' },
+  ],
+
+  bookingEmail: 'thejoeyjoseph@gmail.com',
+};
+
+/* ============================================================
+   SCROLL ↔ FRAME MAPPING (keyframes + hold last frame)
+   ============================================================ */
+function keyframeIndices0() {
+  return CONFIG.keyFrames.map(f => f - 1);
+}
+
+function frameIndexFromProgress(p) {
+  const total = CONFIG.frames.total;
+  const ve    = CONFIG.videoEndProgress;
+  if (p >= ve) return total - 1;
+
+  const pv = Math.min(p / ve, 1);
+  const k  = keyframeIndices0();
+  const d0 = k[1] - k[0];
+  const d1 = k[2] - k[1];
+  const d2 = k[3] - k[2];
+  const sum = d0 + d1 + d2;
+  const a1 = d0 / sum;
+  const a2 = (d0 + d1) / sum;
+
+  let idx;
+  if (pv <= a1) {
+    const t = a1 > 0 ? pv / a1 : 0;
+    idx = Math.round(k[0] + t * (k[1] - k[0]));
+  } else if (pv <= a2) {
+    const t = (pv - a1) / (a2 - a1);
+    idx = Math.round(k[1] + t * (k[2] - k[1]));
+  } else {
+    const t = (1 - a2) > 0 ? (pv - a2) / (1 - a2) : 1;
+    idx = Math.round(k[2] + t * (k[3] - k[2]));
+  }
+  return Math.max(0, Math.min(total - 1, idx));
+}
+
+function progressFromFrameIndex(idx) {
+  const ve    = CONFIG.videoEndProgress;
+  const total = CONFIG.frames.total;
+  const k     = keyframeIndices0();
+  idx = Math.max(0, Math.min(total - 1, idx));
+
+  const d0 = k[1] - k[0];
+  const d1 = k[2] - k[1];
+  const d2 = k[3] - k[2];
+  const sum = d0 + d1 + d2;
+  const a1 = d0 / sum;
+  const a2 = (d0 + d1) / sum;
+
+  let pv;
+  if (idx <= k[1]) {
+    const den = k[1] - k[0];
+    const t = den > 0 ? (idx - k[0]) / den : 0;
+    pv = t * a1;
+  } else if (idx <= k[2]) {
+    const den = k[2] - k[1];
+    const t = den > 0 ? (idx - k[1]) / den : 0;
+    pv = a1 + t * (a2 - a1);
+  } else {
+    const den = k[3] - k[2];
+    const t = den > 0 ? (idx - k[2]) / den : 1;
+    pv = a2 + t * (1 - a2);
+  }
+  return ve * Math.min(1, Math.max(0, pv));
+}
+
+function progressFromFileFrame(n) {
+  return progressFromFrameIndex(n - 1);
+}
+
+function applyDerivedScrollConfig() {
+  const ve   = CONFIG.videoEndProgress;
+  const tail = 1 - ve;
+  const pf   = progressFromFileFrame;
+  const p129 = pf(129);
+  const p162 = pf(162);
+  /* Hard gap between Shows and Music so both overlays never stack */
+  const gap = 0.024;
+
+  const showsLo = p129 - 0.048;
+  const showsHi = p129 + 0.028;
+  const musicLo = Math.max(p162 - 0.032, showsHi + gap);
+  const musicHi = Math.min(p162 + 0.058, ve - 0.035);
+
+  CONFIG.choreography = {
+    hero: [0, Math.min(p129 - 0.085, ve * 0.11)],
+    shows: [Math.max(0, showsLo), showsHi],
+    music: [musicLo, Math.max(musicLo + 0.02, musicHi)],
+    about:   [ve + 0.02 * tail, ve + 0.48 * tail],
+    booking: [ve + 0.38 * tail, ve + 0.97 * tail],
+  };
+
+  const ch = CONFIG.choreography;
+  CONFIG.timelineTargets = [
+    (ch.shows[0] + ch.shows[1]) / 2,
+    (ch.music[0] + ch.music[1]) / 2,
+    (ch.about[0] + ch.about[1]) / 2,
+    (ch.booking[0] + ch.booking[1]) / 2,
+  ];
+}
+
+applyDerivedScrollConfig();
+
+/* Nav jumps to the middle of each overlay band (not raw keyframe p — that left Shows invisible). */
+const sectionMidpoints = {
+  shows:   (CONFIG.choreography.shows[0] + CONFIG.choreography.shows[1]) / 2,
+  music:   (CONFIG.choreography.music[0] + CONFIG.choreography.music[1]) / 2,
+  about:   (CONFIG.choreography.about[0] + CONFIG.choreography.about[1]) / 2,
+  booking: (CONFIG.choreography.booking[0] + CONFIG.choreography.booking[1]) / 2,
+};
+
+/* ============================================================
+   RENDER — populates DOM from CONFIG
+   ============================================================ */
+(function render() {
+  const sig = CONFIG.signatureUrl;
+  document.getElementById('loaderSig').src = sig;
+  document.getElementById('navSig').src    = sig;
+  document.getElementById('heroSig').src   = sig;
+  document.getElementById('musicSig').src   = sig;
+
+  document.getElementById('heroTagline').textContent = CONFIG.hero.tagline;
+  document.getElementById('edgeTag').textContent     = CONFIG.hero.edgeTag;
+  document.getElementById('spacer').style.height     = CONFIG.scrollHeight;
+
+  /* Nav links */
+  document.getElementById('navLinks').innerHTML = CONFIG.nav.map((item, i) => {
+    const sep = i < CONFIG.nav.length - 1 ? '<span class="nav-sep">·</span>' : '';
+    if (item.href) {
+      return `<a href="${item.href}">${item.label}</a>${sep}`;
+    }
+    return `<a href="#" class="js-nav" data-section="${item.section}">${item.label}</a>${sep}`;
+  }).join('');
+
+  /* Shows */
+  document.getElementById('showsList').innerHTML = CONFIG.shows.map(s => `
+    <div class="show-row">
+      <div class="show-date">${s.date}</div>
+      <div>
+        <div class="show-venue">${s.venue}</div>
+        <div class="show-meta">${s.city} · ${s.name}</div>
+      </div>
+      ${s.url
+        ? `<a class="show-link" href="${s.url}" target="_blank" rel="noopener">Tickets →</a>`
+        : `<span class="show-link is-tba">TBA</span>`}
+    </div>
+  `).join('');
+
+  /* Music platforms */
+  document.getElementById('platformLinks').innerHTML = [
+    { label: 'Spotify',     url: CONFIG.music.spotifyUrl    },
+    { label: 'Apple Music', url: CONFIG.music.appleMusicUrl },
+    { label: 'YouTube',     url: CONFIG.music.youtubeUrl    },
+  ].map(p => `<a class="platform-link" href="${p.url}" target="_blank" rel="noopener">${p.label} →</a>`).join('');
+
+  /* About */
+  document.getElementById('aboutBody').innerHTML =
+    CONFIG.about.bio.map(p => `<p>${p}</p>`).join('');
+
+  /* Availability */
+  document.getElementById('availList').innerHTML = CONFIG.availability.map(a => `
+    <div class="avail-row">
+      <div class="avail-type">${a.type}</div>
+      <div class="avail-status ${a.status}">${a.status === 'open' ? 'Open' : a.status === 'limited' ? 'Limited' : 'Booked'}</div>
+    </div>
+  `).join('');
+
+  /* Booking CTA */
+  const cta = document.getElementById('bookingCta');
+  cta.href        = 'mailto:' + CONFIG.bookingEmail;
+  cta.textContent = CONFIG.bookingEmail + ' →';
+})();
+
+/* ============================================================
+   FRAME ENGINE
+   ============================================================ */
+const FADE_LEN          = 0.045;   // fade-in / fade-out length as % of progress
+const READY_THRESHOLD   = 24;      // frames needed before revealing site
+const FIRST_BATCH_SIZE  = 60;      // prioritise loading first N frames
+
+function frameUrl(n) {
+  return CONFIG.frames.baseUrl
+    + CONFIG.frames.prefix
+    + String(n).padStart(CONFIG.frames.pad, '0')
+    + CONFIG.frames.ext;
+}
+
+const images    = new Array(CONFIG.frames.total);
+const loaded    = new Array(CONFIG.frames.total).fill(false);
+let firstReady  = 0;
+let siteUnlocked = false;
+
+function preload() {
+  /* Load frames 1..FIRST_BATCH_SIZE first, then the rest */
+  const order = [];
+  for (let i = 0; i < FIRST_BATCH_SIZE && i < CONFIG.frames.total; i++) order.push(i);
+  for (let i = FIRST_BATCH_SIZE; i < CONFIG.frames.total; i++) order.push(i);
+
+  order.forEach(idx => {
+    const img = new Image();
+    img.onload = () => {
+      loaded[idx] = true;
+      if (idx < FIRST_BATCH_SIZE) {
+        firstReady++;
+        const pct = Math.min(firstReady / READY_THRESHOLD * 100, 100);
+        document.getElementById('loaderFill').style.width = pct + '%';
+        if (firstReady >= READY_THRESHOLD && !siteUnlocked) {
+          siteUnlocked = true;
+          unlockSite();
+        }
+      }
+    };
+    img.src = frameUrl(idx + 1); // frames are 1-indexed
+    images[idx] = img;
+  });
+}
+
+function unlockSite() {
+  window.scrollTo(0, 0);
+  syncScrollProgress();
+  currentIdx = frameIndexFromProgress(scrollProgress);
+
+  const loader = document.getElementById('loader');
+  loader.classList.add('fade-out');
+  setTimeout(() => loader.classList.add('gone'), 1200);
+  drawFrameAt(currentIdx);
+}
+
+/* ============================================================
+   CANVAS
+   ============================================================ */
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.width  = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  if (siteUnlocked) drawFrameAt(currentIdx);
+}
+
+function drawFrameAt(idx) {
+  const img = bestFrame(idx);
+  if (!img || !img.complete || img.naturalWidth === 0) return;
+
+  const iw = img.naturalWidth;
+  const ih = img.naturalHeight;
+  const cw = canvas.width;
+  const ch = canvas.height;
+
+  /* object-fit: cover */
+  const scale = Math.max(cw / iw, ch / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (cw - dw) / 2;
+  const dy = (ch - dh) / 2;
+
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.drawImage(img, dx, dy, dw, dh);
+}
+
+function bestFrame(idx) {
+  if (loaded[idx]) return images[idx];
+  /* Walk outward to find nearest loaded frame */
+  for (let d = 1; d < 60; d++) {
+    if (idx - d >= 0 && loaded[idx - d]) return images[idx - d];
+    if (idx + d < CONFIG.frames.total && loaded[idx + d]) return images[idx + d];
+  }
+  return null;
+}
+
+/* ============================================================
+   SCROLL ENGINE
+   ============================================================ */
+let scrollProgress = 0;
+let currentIdx     = 0;
+
+function syncScrollProgress() {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  scrollProgress = max > 0 ? Math.min(Math.max(0, window.scrollY) / max, 1) : 0;
+}
+
+window.addEventListener('scroll', () => {
+  syncScrollProgress();
+}, { passive: true });
+
+/* ============================================================
+   SECTION OPACITY
+   ============================================================ */
+function sectionOpacity(p, start, end) {
+  if (p >= end) return 0;
+  if (p < start) return 0;
+  /* Instant reveal at page top (start === 0) */
+  const fadeIn  = (start === 0) ? 1 : Math.min((p - start) / FADE_LEN, 1);
+  const fadeOut = Math.min((end - p) / FADE_LEN, 1);
+  return Math.min(fadeIn, fadeOut);
+}
+
+function applySection(id, opacity) {
+  const el = document.getElementById(id);
+  el.style.opacity = opacity;
+  el.classList.toggle('active', opacity > 0.05);
+}
+
+/* ============================================================
+   NAVIGATION HELPERS
+   ============================================================ */
+let navScrollRaf    = null;
+let navScrollGen    = 0;
+
+/**
+ * Timeline band index for scroll progress: -1 hero, 0 shows … 3 booking.
+ */
+function timelineSectionIndex(p) {
+  const ch = CONFIG.choreography;
+  if (p < ch.shows[0]) return -1;
+  const splitAboutBooking =
+    (sectionMidpoints.about + sectionMidpoints.booking) / 2;
+  if (p < ch.music[0]) return 0;
+  if (p < ch.about[0]) return 1;
+  if (p < splitAboutBooking) return 2;
+  return 3;
+}
+
+/**
+ * Forward: (frames crossed) / filmScrollFps — constant projection speed.
+ * Backward: filmScrollRewindMult.
+ */
+function goToSiteStart() {
+  scrollToProgressFilm(0);
+}
+
+function scrollToProgressFilm(targetP) {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  if (max <= 0) return;
+
+  const startY = window.scrollY;
+  const endY   = Math.min(Math.max(0, targetP * max), max);
+  if (Math.abs(endY - startY) < 2) return;
+
+  navScrollGen++;
+  const gen = navScrollGen;
+  if (navScrollRaf) cancelAnimationFrame(navScrollRaf);
+
+  const startP = Math.min(1, Math.max(0, startY / max));
+  const endP   = Math.min(1, Math.max(0, targetP));
+
+  const goingForward  = endP > startP + 1e-9;
+  const goingBackward = endP < startP - 1e-9;
+
+  const i0 = frameIndexFromProgress(startP);
+  const i1 = frameIndexFromProgress(endP);
+  let frameSteps = Math.abs(i1 - i0);
+  if (frameSteps < 2 && Math.abs(endP - startP) > 1e-5) {
+    frameSteps = Math.max(
+      2,
+      Math.round(Math.abs(endP - startP) * (CONFIG.frames.total - 1) * 0.35),
+    );
+  }
+
+  const fps = CONFIG.filmScrollFps || 24;
+  let durationMs = (frameSteps / fps) * 1000;
+
+  if (goingForward) {
+    durationMs = Math.min(
+      CONFIG.filmScrollForwardMaxMs ?? 60000,
+      Math.max(CONFIG.filmScrollForwardMinMs ?? 100, durationMs),
+    );
+  } else if (goingBackward) {
+    durationMs *= CONFIG.filmScrollRewindMult ?? 0.42;
+    durationMs = Math.min(
+      CONFIG.filmScrollRewindMaxMs ?? 5200,
+      Math.max(CONFIG.filmScrollRewindMinMs ?? 90, durationMs),
+    );
+  } else {
+    durationMs = Math.min(7000, Math.max(200, durationMs));
+  }
+
+  const t0 = performance.now();
+  const dy = endY - startY;
+
+  function tick(now) {
+    if (gen !== navScrollGen) return;
+    const u = durationMs <= 0 ? 1 : Math.min(1, (now - t0) / durationMs);
+    window.scrollTo(0, startY + dy * u);
+    if (u < 1) navScrollRaf = requestAnimationFrame(tick);
+    else navScrollRaf = null;
+  }
+  navScrollRaf = requestAnimationFrame(tick);
+}
+
+/** Side dot index 0–3, or -1 hero (no red highlight). */
+function activeTimelineDot(p) {
+  return timelineSectionIndex(p);
+}
+
+/* ============================================================
+   RENDER LOOP
+   ============================================================ */
+function loop() {
+  const p = scrollProgress;
+
+  /* Frame (piecewise keyframes; hold last frame after videoEndProgress) */
+  const target = frameIndexFromProgress(p);
+  if (target !== currentIdx) {
+    currentIdx = target;
+    if (siteUnlocked) drawFrameAt(currentIdx);
+  }
+
+  /* Section opacities */
+  const ch = CONFIG.choreography;
+  applySection('sec-hero',    sectionOpacity(p, ch.hero[0],    ch.hero[1]));
+  applySection('sec-shows',   sectionOpacity(p, ch.shows[0],   ch.shows[1]));
+  applySection('sec-music',   sectionOpacity(p, ch.music[0],   ch.music[1]));
+  applySection('sec-about',   sectionOpacity(p, ch.about[0],   ch.about[1]));
+  applySection('sec-booking', sectionOpacity(p, ch.booking[0], ch.booking[1]));
+
+  /* Nav sig visibility */
+  const navSig = document.getElementById('navSig');
+  navSig.classList.toggle('visible', p > CONFIG.videoEndProgress * 0.2);
+
+  /* Timeline active dot — none highlighted until Shows section */
+  const activeDot = activeTimelineDot(p);
+  document.querySelectorAll('.tl-node').forEach((node, i) => {
+    node.classList.toggle('active', activeDot >= 0 && i === activeDot);
+  });
+
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================
+   CLICK HANDLERS
+   ============================================================ */
+function bindClicks() {
+  document.getElementById('navSig').addEventListener('click', () => {
+    goToSiteStart();
+  });
+
+  /* Nav section links */
+  document.querySelectorAll('.js-nav').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const key = a.getAttribute('data-section');
+      if (sectionMidpoints[key] !== undefined) scrollToProgressFilm(sectionMidpoints[key]);
+    });
+  });
+
+  /* Timeline dots */
+  document.querySelectorAll('.tl-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const i = parseInt(node.getAttribute('data-idx'));
+      scrollToProgressFilm(CONFIG.timelineTargets[i]);
+    });
+  });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  bindClicks();
+
+  syncScrollProgress();
+  currentIdx = frameIndexFromProgress(scrollProgress);
+
+  /* Opening hero + frame 0 (scrollProgress can desync until first scroll event without sync) */
+  document.getElementById('sec-hero').style.opacity = 1;
+  document.getElementById('sec-hero').classList.add('active');
+
+  preload();
+  loop();
+
+  window.addEventListener('load', () => {
+    window.scrollTo(0, 0);
+    syncScrollProgress();
+    currentIdx = frameIndexFromProgress(scrollProgress);
+    if (siteUnlocked) drawFrameAt(currentIdx);
+  });
+
+  window.addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    window.scrollTo(0, 0);
+    syncScrollProgress();
+    currentIdx = frameIndexFromProgress(scrollProgress);
+    if (siteUnlocked) drawFrameAt(currentIdx);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
