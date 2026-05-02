@@ -72,6 +72,7 @@
       width: 180px;
       opacity: 0.9;
       filter: drop-shadow(0 0 24px rgba(139,26,26,0.35));
+      clip-path: inset(0 0 0 3px);
     }
     .loader-track {
       width: 180px;
@@ -974,7 +975,7 @@ function applyDerivedScrollConfig() {
   const showsLo = p129 - 0.048;
   const showsHi = p129 + 0.028;
   const musicLo = Math.max(p162 - 0.032, showsHi + gap);
-  const musicHi = Math.min(p162 + 0.058, ve - 0.035);
+  const musicHi = Math.min(p162 + 0.075, ve - 0.02);
 
   CONFIG.choreography = {
     hero: [0, Math.min(p129 - 0.085, ve * 0.11)],
@@ -997,8 +998,8 @@ applyDerivedScrollConfig();
 
 /* Nav jumps to the middle of each overlay band (not raw keyframe p — that left Shows invisible). */
 const sectionMidpoints = {
-  shows:   (CONFIG.choreography.shows[0] + CONFIG.choreography.shows[1]) / 2,
-  music:   (CONFIG.choreography.music[0] + CONFIG.choreography.music[1]) / 2,
+  shows:   progressFromFileFrame(128),
+  music:   progressFromFileFrame(175),
   about:   (CONFIG.choreography.about[0] + CONFIG.choreography.about[1]) / 2,
   booking: (CONFIG.choreography.booking[0] + CONFIG.choreography.booking[1]) / 2,
 };
