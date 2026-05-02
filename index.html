@@ -821,10 +821,10 @@ const CONFIG = {
   },
 
   shows: [
-    { date: '05.06', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
-    { date: '05.13', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
-    { date: '05.20', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
-    { date: '05.27', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
+    { date: '05.06', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
+    { date: '05.13', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
+    { date: '05.20', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
+    { date: '05.27', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
   ],
 
   music: {
@@ -991,8 +991,8 @@ const sectionMidpoints = {
     <div class="show-row">
       <div class="show-date">${s.date}</div>
       <div>
-        <div class="show-venue">${s.venue}</div>
-        <div class="show-meta">${s.city} · ${s.name}</div>
+        <div class="show-venue">${s.name}</div>
+        <div class="show-meta">${s.venue} · ${s.city}</div>
       </div>
       ${s.url
         ? `<a class="show-link" href="${s.url}" target="_blank" rel="noopener">Tickets →</a>`
