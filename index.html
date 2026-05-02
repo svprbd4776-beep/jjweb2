@@ -17,7 +17,7 @@
       --night:   #0E0B08;
       --oxblood: #8B1A1A;
       --bone:    #E8E2D4;
-      --ash:     #5A544A;
+      --ash:     #9A9080;
       --gold:    #C4A052;
 
       --font-sans:      'Inter', system-ui, sans-serif;
@@ -352,10 +352,9 @@
       justify-content: center;
     }
 
-    .shows-inner { max-width: 740px; }
+    .shows-inner { max-width: 740px; background: rgba(10,8,6,0.50); padding: 4px 24px 16px; border-radius: 2px; }
 
     .shows-list {
-      border-top: 1px solid rgba(232,226,212,0.1);
     }
 
     .show-row {
@@ -500,11 +499,10 @@
       justify-content: center;
     }
 
-    .booking-inner { max-width: 560px; }
+    .booking-inner { max-width: 560px; background: rgba(10,8,6,0.50); padding: 4px 24px 16px; border-radius: 2px; }
 
     .avail-list {
       margin-bottom: 44px;
-      border-top: 1px solid rgba(232,226,212,0.08);
     }
 
     .avail-row {
@@ -532,7 +530,7 @@
       letter-spacing: 0.28em;
       text-transform: uppercase;
     }
-    .avail-status.open    { color: var(--bone); opacity: 0.4; }
+    .avail-status.open    { color: #6BBF70; opacity: 1; }
     .avail-status.limited { color: var(--gold); }
     .avail-status.booked  { color: var(--ash); text-decoration: line-through; opacity: 0.4; }
 
@@ -633,10 +631,16 @@
       .show-date { font-size: 16px; }
 
       .music-sig { width: 190px; }
-      .platform-links { gap: 12px; }
-      .platform-link { padding: 11px 18px; font-size: 11px; }
+      .platform-links { gap: 10px; }
+      .platform-link { padding: 10px 14px; font-size: 11px; }
+      .music-sub { margin-bottom: 28px; }
+      #sec-music .sec-label { margin-bottom: 16px; }
+
+      .booking-inner { padding-right: 62px; }
+      .avail-status { font-size: 9px; letter-spacing: 0.18em; }
 
       .hero-edge-tag { right: auto; left: 20px; }
+      .scroll-prompt { display: none; }
     }
   </style>
 </head>
@@ -797,10 +801,10 @@ const CONFIG = {
   },
 
   shows: [
-    { date: '04.30', day: 'Wed', venue: 'Da Milio',        city: 'New York', name: 'Late Night Sessions', url: '#' },
-    { date: '05.07', day: 'Wed', venue: 'Da Milio',        city: 'New York', name: 'Late Night Sessions', url: '#' },
-    { date: '05.14', day: 'Wed', venue: 'Russian Samovar', city: 'New York', name: 'Guest Night',         url: '' },
-    { date: '06.12', day: 'Thu', venue: 'Venue TBD',       city: 'London',   name: 'UK Debut',            url: '' },
+    { date: '05.06', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
+    { date: '05.13', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
+    { date: '05.20', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
+    { date: '05.27', day: 'Wed', venue: 'Da Milio', city: 'New York', name: 'Late Night Sessions', url: '#' },
   ],
 
   music: {
@@ -1079,11 +1083,11 @@ function drawFrameAt(idx) {
   const cw = canvas.width;
   const ch = canvas.height;
 
-  /* object-fit: cover */
-  const scale = Math.max(cw / iw, ch / ih);
+  /* object-fit: cover + zoom */
+  const scale = Math.max(cw / iw, ch / ih) * 1.18;
   const dw = iw * scale;
   const dh = ih * scale;
-  const dx = (cw - dw) / 2;
+  const dx = (cw - dw) / 2 + dw * 0.04;
   const dy = (ch - dh) / 2;
 
   ctx.clearRect(0, 0, cw, ch);
