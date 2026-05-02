@@ -708,6 +708,15 @@
 <!-- ============================================================
      CANVAS — image sequence
      ============================================================ -->
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;overflow:hidden">
+  <defs>
+    <filter id="sig-red" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+      <feColorMatrix id="sigRedMatrix" type="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+    </filter>
+  </defs>
+</svg>
+
 <canvas id="canvas"></canvas>
 
 <!-- ============================================================
@@ -1318,6 +1327,22 @@ function loop() {
 
   /* Timeline in-section class (drives mobile tag colors) */
   document.getElementById('timeline').classList.toggle('in-section', activeDot >= 0);
+
+  /* Nav sig fades white → oxblood in sync with music section */
+  const musicOp = sectionOpacity(p, ch.music[0], ch.music[1]);
+  const navSigEl = document.getElementById('navSig');
+  if (musicOp < 0.01) {
+    navSigEl.style.filter = '';
+  } else {
+    const t = musicOp;
+    const rr = (1 - 0.396 * t).toFixed(4);
+    const gg = (1 - 0.435 * t).toFixed(4);
+    const bb = (1 - 0.498 * t).toFixed(4);
+    document.getElementById('sigRedMatrix').setAttribute('values',
+      `${rr} 0 0 0 0  0 ${gg} 0 0 0  0 0 ${bb} 0 0  0 0 0 1 0`
+    );
+    navSigEl.style.filter = 'url(#sig-red)';
+  }
 
   /* Nav link active/inactive states */
   document.querySelectorAll('.js-nav').forEach((a, i) => {
