@@ -7,7 +7,7 @@
   <script>if ('scrollRestoration' in history) history.scrollRestoration = 'manual';</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 
   <style>
     /* ============================================================
@@ -476,9 +476,10 @@
     .about-inner { max-width: 520px; }
 
     .about-body p {
-      font-size: 16px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px;
       font-weight: 400;
-      line-height: 1.75;
+      line-height: 1.7;
       color: var(--bone);
       text-shadow:
         0 2px 20px rgba(0,0,0,0.85),
@@ -815,8 +816,8 @@ const CONFIG = {
 
   about: {
     bio: [
-      'Joey Joseph is a New York pianist, vocalist, violinist, and composer. He hosts <em>Late Night Sessions</em> — a weekly residency at Da Milio in the West Village.',
-      'Outside of his residencies and shows, he scores for film and television under NocturneScoring.Studios, performs at private events internationally, and keeps a small studio of students.',
+      'Joey Joseph is a New York singer, multi-instrumentalist, and composer. He hosts <em>Late Night Sessions</em> — a weekly R&B and Soul residency located in NoLita.',
+      'Outside of his residencies and shows, he scores for film and television under Nocturne Scoring Studios, and keeps a small studio of private students.',
     ],
   },
 
@@ -1088,7 +1089,12 @@ function drawFrameAt(idx) {
   const dw = iw * scale;
   const dh = ih * scale;
   const dx = (cw - dw) / 2 + dw * 0.04;
-  const dy = (ch - dh) / 2;
+  /* Frame 177+ camera shifts up — nudge dy down to rebalance.
+     Tune FRAME_JUMP_CORRECTION (fraction of image height) until the
+     jump between frame 176 and 177 feels smooth. */
+  const FRAME_JUMP_CORRECTION = 0.04; // try 0.02–0.08
+  const jumpOffset = idx >= 176 ? -dh * FRAME_JUMP_CORRECTION : 0;
+  const dy = (ch - dh) / 2 + jumpOffset;
 
   ctx.clearRect(0, 0, cw, ch);
   ctx.drawImage(img, dx, dy, dw, dh);
