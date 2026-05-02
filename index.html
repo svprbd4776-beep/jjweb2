@@ -172,10 +172,22 @@
       text-transform: uppercase;
       color: var(--bone);
       text-decoration: none;
-      transition: color 0.2s;
+      transition: color 0.3s ease, opacity 0.3s ease;
       cursor: pointer;
     }
     .nav-links a:hover { color: var(--oxblood); }
+    .nav-links a.nav-active {
+      color: #ffffff;
+      opacity: 1;
+    }
+    .nav-links a.nav-inactive {
+      color: var(--ash);
+      opacity: 0.45;
+    }
+    .nav-links a.nav-inactive:hover {
+      color: var(--bone);
+      opacity: 0.75;
+    }
     .nav-sep {
       color: var(--ash);
       opacity: 0.35;
@@ -592,8 +604,12 @@
         font-size: 9px;
         right: 20px;
         color: var(--bone);
+        transition: color 0.3s ease, opacity 0.3s ease;
+        pointer-events: auto;
+        cursor: pointer;
       }
-      .tl-node.active .tl-tag { color: var(--bone); opacity: 1; }
+      #timeline.in-section .tl-node.active .tl-tag { color: #ffffff; opacity: 1; }
+      #timeline.in-section .tl-node:not(.active) .tl-tag { color: var(--ash); opacity: 0.45; }
 
       /* Bigger dot + invisible tap padding */
       .tl-node { padding: 10px 4px; }
@@ -1267,6 +1283,17 @@ function loop() {
   const activeDot = activeTimelineDot(p);
   document.querySelectorAll('.tl-node').forEach((node, i) => {
     node.classList.toggle('active', activeDot >= 0 && i === activeDot);
+  });
+
+  /* Timeline in-section class (drives mobile tag colors) */
+  document.getElementById('timeline').classList.toggle('in-section', activeDot >= 0);
+
+  /* Nav link active/inactive states */
+  document.querySelectorAll('.js-nav').forEach((a, i) => {
+    a.classList.remove('nav-active', 'nav-inactive');
+    if (activeDot >= 0) {
+      a.classList.add(i === activeDot ? 'nav-active' : 'nav-inactive');
+    }
   });
 
   requestAnimationFrame(loop);
