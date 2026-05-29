@@ -888,10 +888,12 @@ const CONFIG = {
   },
 
   shows: [
-    { date: '05.06', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
-    { date: '05.13', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
-    { date: '05.20', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
-    { date: '05.27', day: 'Wed', venue: 'Da Milio', city: 'NoLita, NYC', name: 'Late Night Sessions', url: '#' },
+    { date: '06.02', day: 'Tue', venue: 'Flyfish Club', city: 'LES, NYC',   name: 'The Cattail Sessions', url: '' },
+    { date: '06.03', day: 'Wed', venue: 'Da Milio',     city: 'NoLita, NYC', name: 'Late Night Sessions',  url: '#' },
+    { date: '06.10', day: 'Wed', venue: 'Da Milio',     city: 'NoLita, NYC', name: 'Late Night Sessions',  url: '#' },
+    { date: '06.17', day: 'Wed', venue: 'Da Milio',     city: 'NoLita, NYC', name: 'Late Night Sessions',  url: '#' },
+    { date: '06.23', day: 'Tue', venue: 'Flyfish Club', city: 'LES, NYC',   name: 'The Cattail Sessions', url: '' },
+    { date: '06.24', day: 'Wed', venue: 'Da Milio',     city: 'NoLita, NYC', name: 'Late Night Sessions',  url: '#' },
   ],
 
   music: {
@@ -1063,7 +1065,7 @@ const sectionMidpoints = {
       </div>
       ${s.url
         ? `<a class="show-link" href="${s.url}" target="_blank" rel="noopener">Tickets →</a>`
-        : `<span class="show-link is-tba">TBA</span>`}
+        : ``}
     </div>
   `).join('');
 
@@ -1217,9 +1219,14 @@ window.addEventListener('scroll', () => {
 function sectionOpacity(p, start, end) {
   if (p >= end) return 0;
   if (p < start) return 0;
+  /* Cap the fade length to a quarter of the band so every section — even
+     narrow ones like Shows — reaches a true 1.0-opacity plateau at its
+     resting point. Without this, bands narrower than 2*FADE_LEN peak below
+     full opacity, leaving the text dimmed when the section is paused. */
+  const fade = Math.min(FADE_LEN, (end - start) * 0.25);
   /* Instant reveal at page top (start === 0) */
-  const fadeIn  = (start === 0) ? 1 : Math.min((p - start) / FADE_LEN, 1);
-  const fadeOut = Math.min((end - p) / FADE_LEN, 1);
+  const fadeIn  = (start === 0) ? 1 : Math.min((p - start) / fade, 1);
+  const fadeOut = Math.min((end - p) / fade, 1);
   return Math.min(fadeIn, fadeOut);
 }
 
